@@ -5,8 +5,9 @@ public class myFirstTCPClient {
 
   public static void main(String[] args) throws IOException {
 
-    if ((args.length < 2) || (args.length > 3))  // Test for correct # of args
+    if ((args.length < 2) || (args.length > 3)) { // Test for correct # of args
       throw new IllegalArgumentException("Parameter(s): <Server> <Word> [<Port>]");
+    }
 
     String server = args[0];       // Server name or IP address
     // Convert input String to bytes using the default character encoding
@@ -31,10 +32,16 @@ public class myFirstTCPClient {
 
     // Receive the devowelized string back from the server
     int totalBytesRcvd = 0;  // Total bytes received so far
-    int bytesRcvd;           // Bytes received in last read
-    while (totalBytesRcvd < byteBuffer.length) {
+    int bytesRcvd = -1;           // Bytes received in last read
+    for (int i = 0; i <byteBuffer.length; i++) {
+      byteBuffer[i] = 0;
+    }
+    while (totalBytesRcvd > bytesRcvd) {
       if ((bytesRcvd = in.read(byteBuffer, totalBytesRcvd, byteBuffer.length - totalBytesRcvd)) == -1) {
         throw new SocketException("Connection close prematurely");
+      }
+      if (bytesRcvd == -1) {
+        bytesRcvd = 0;
       }
       totalBytesRcvd += bytesRcvd;
     }

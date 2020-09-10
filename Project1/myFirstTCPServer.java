@@ -37,13 +37,14 @@ public class myFirstTCPServer {
 
         // Start from the front of the received data, and traverse added every character that is not a vowel
         for (int i = 0; i < recvMsgSize; i++) {
-          if (sb.charAt(i) != 'a' && sb.charAt(i) != 'e' && sb.charAt(i) != 'i' && sb.charAt(i) != 'o' && sb.charAt(i) != 'u') {
+          if (sb.charAt(i) != 'A' && sb.charAt(i) != 'E' && sb.charAt(i) != 'I' && sb.charAt(i) != 'O' && sb.charAt(i) != 'U'
+            && sb.charAt(i) != 'a' && sb.charAt(i) != 'e' && sb.charAt(i) != 'i' && sb.charAt(i) != 'o' && sb.charAt(i) != 'u') {
             devowelized = devowelized + sb.charAt(i);
           }
         }
+        byte[] sendMsg = devowelized.getBytes();
         int sendMsgSize = devowelized.getBytes().length;
-        byte[] bytes = devowelized.getBytes();
-        out.write(bytes, 0, sendMsgSize);
+        out.write(sendMsg, 0, sendMsgSize);
         System.out.println("Server Sent: " + devowelized);
       }
 
