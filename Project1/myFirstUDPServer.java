@@ -25,7 +25,8 @@ public class myFirstUDPServer {
       for (int i=0; i < packLength; i++) {
         if (receivedPacket[i] != 'A' && receivedPacket[i]  != 'E' && receivedPacket[i]  != 'I' && receivedPacket[i]  != 'O' && receivedPacket[i]  != 'U'
           && receivedPacket[i] != 'a' && receivedPacket[i]  != 'e' && receivedPacket[i]  != 'i' && receivedPacket[i]  != 'o' && receivedPacket[i]  != 'u') {
-          devowelized[i] = receivedPacket[i];
+          devowelized[j] = receivedPacket[i];
+          j++;
         }
       }
       packet.setData(devowelized);
