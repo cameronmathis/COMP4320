@@ -1,8 +1,6 @@
 import java.net.*;  // for DatagramSocket, DatagramPacket, and InetAddress
 import java.io.*;   // for IOException
 import java.util.Scanner;
-import java.util.zip.Adler32;
-import java.util.zip.Checksum;
 import java.util.Random; 
 
 public class ClientUDP {
@@ -63,7 +61,6 @@ public class ClientUDP {
          byte tml = 9;
          request_id = (request_id + 1) % 128;
          byte checksum = ChecksumCalculator(request_id, x, a3, a2, a1, a0);
-         System.out.println("Checksum (for debugging): " + checksum);
          Request request = new Request(tml, (short)request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
 
          byte[] bytesToSend = encoder.encode(request);
@@ -137,10 +134,24 @@ public class ClientUDP {
       byte ba1 = (byte)a1;
       byte ba0 = (byte)a0;
       byte[] byteArray = {tml, brequest_id, bx, ba3, ba2, ba1, ba0};
-      Checksum checksum = new Adler32();
-      checksum.update(byteArray, 0, byteArray.length);
-      byte res = (byte)checksum.getValue();
-      return res;
+      byte S = byteArray[0];
+      for (byte i=1; i < 7; i++) {
+         boolean carry = willAdditionOverflow(S, byteArray[i]);
+         S = (byte) (S + byteArray[i]);
+         if (carry == true) {
+            S = (byte) (S + 1);
+         }
+      }
+      return (byte) ~S;
+   }
+
+   public static boolean willAdditionOverflow(byte left, byte right) {
+      try {
+          Math.addExact(left, right);
+          return false;
+      } catch (ArithmeticException e) {
+          return true;
+      }
    }
 
    private static char[] hexChars(byte[] bytes, int length_in) {
