@@ -1,6 +1,6 @@
 import java.io.*;  // for ByteArrayOutputStream and DataOutputStream
 
-public class RequestEncoderBin implements OperationRequestEncoder {
+public class RequestEncoderBin implements RequestEncoder {
   public byte[] encode(Request request) throws IOException {
     ByteArrayOutputStream buf = new ByteArrayOutputStream();
     DataOutputStream out = new DataOutputStream(buf);

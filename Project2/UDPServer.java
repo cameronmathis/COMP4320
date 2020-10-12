@@ -19,19 +19,23 @@ public class UDPServer {
       socket.receive(packet);     // Receive packet from client
       int packetLength  = packet.getLength();
 
+      Request request = decoder.decode(packet);
+      byte error_code = 0;
+
       // Assert that byte length recieved is equal to object's TML value
       if(request.tml != packetLength) {
         error_code = 127;
       }
 
-      int x = 0;
-      int a0 = 0;
-      int a1 = 0;
-      int a2 = 0;
-      int a3 = 0;
-      long opResult;
-      boolean isError = false;
+      int x = request.x;
+      int a3 = request.a3;
+      int a2 = request.a2;
+      int a1 = request.a1;
+      int a0 = request.a0;
+      long opResult = 0;
       
+      // perform calculation
+      opResult = (a3)*(x*x*x) + (a2)*(x*x) + (a1)*(x) + (a0); 
 
       byte tml = 7;
       byte checksum = 0;
