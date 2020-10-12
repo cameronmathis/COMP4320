@@ -1,19 +1,19 @@
 import java.io.*;  // for ByteArrayInputStream
 import java.net.*; // for DatagramPacket
 
-public class ResultDecoderBin {
-
+public class RequestDecoderBin implements OperationRequestDecoder {
     public Request decode(InputStream wire)  throws IOException  {
-
         DataInputStream src = new DataInputStream(wire);
         byte tml = src.readByte();
-        byte request_id = src.readByte();
-        byte op_code = src.readByte();
-        byte num_operands = src.readByte();
-        short operand1 = src.readShort();
-        short operand2 = src.readShort();
+        short request_id = src.readShort();
+        byte x = src.readByte();
+        byte a3 = src.readByte();
+        byte a2 = src.readByte();
+        byte a1 = src.readByte();
+        byte a0 = src.readByte();
+        byte checksum = src.readByte();
 
-        return new Request(tml, request_id, op_code, num_operands, operand1, operand2);
+        return new OperationRequest(tml, request_id, x, a3, a2, a1, a0, checksum);
     }
 
     public Request decode(DatagramPacket p) throws IOException {

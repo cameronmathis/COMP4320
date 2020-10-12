@@ -1,5 +1,4 @@
 public class Request {
-
     public byte tml;
     public short request_id;
     public byte x;

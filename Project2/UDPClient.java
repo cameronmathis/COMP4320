@@ -5,12 +5,10 @@ import java.util.Scanner;
 import java.util.Random; 
 
 public class UDPClient {
-
    private static final int TIMEOUT = 3000;   // Resend timeout (milliseconds)
    private static final int MAXTRIES = 5;     // Maximum retransmissions
 
    public static void main(String[] args) throws IOException {
-   
       if (args.length != 2)  // Test for correct # of args
          throw new IllegalArgumentException("Parameter(s): <Server> <Port>");
    
@@ -21,8 +19,8 @@ public class UDPClient {
       Random random = new Random(); 
       int request_id = random.nextInt(128);
 
-      ResultEncoderBin encoder = new ResultEncoderBin();
-      ResultDecoder decoder = new ResultDecoderBin();
+      ResponseEncoder encoder = new ResponseEncoderBin();
+      ResponseDecoder decoder = new ResponseDecoderBin();
 
       for(;;) {
          System.out.println("This program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
