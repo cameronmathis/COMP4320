@@ -22,6 +22,7 @@ public class UDPClient {
       int request_id = random.nextInt(128);
 
       ResultEncoderBin encoder = new ResultEncoderBin();
+      ResultDecoder decoder = new ResultDecoderBin();
 
       for(;;) {
          System.out.println("This program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
@@ -97,8 +98,8 @@ public class UDPClient {
          } while ((!receivedResponse) && (tries < MAXTRIES));
          long recTime = System.nanoTime();
       
-         if (receivedResponse)
-            Result response = decoder.decode(receivePacket);
+         if (receivedResponse) {
+            Response response = decoder.decode(receivePacket);
             
             byte[] bytes = receivePacket.getData();
          
@@ -106,8 +107,9 @@ public class UDPClient {
             System.out.println("Received Packet: " + new String(hexChars(bytes, response.tml)));
             System.out.println("Request ID is: " + response.request_id);
             System.out.println("The result is: " + response.result);
-         else
+         } else {
             System.out.println("No response -- giving up.");
+         }
          System.out.println("Time elapsed: " + (recTime - sendTime) + " ns");
          
          socket.close();         
