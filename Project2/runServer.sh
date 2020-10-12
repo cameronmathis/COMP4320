@@ -2,4 +2,4 @@
 # compile the program in Java
 javac *.java
 # execute the program
-java UDPServer $1
+java ServerUDP $1

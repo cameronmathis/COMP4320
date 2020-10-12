@@ -5,7 +5,7 @@ import java.util.zip.Adler32;
 import java.util.zip.Checksum;
 import java.util.Random; 
 
-public class UDPClient {
+public class ClientUDP {
    private static final int TIMEOUT = 3000;   // resend timeout (milliseconds)
    private static final int MAXTRIES = 5;     // maximum retransmissions
 
@@ -63,7 +63,7 @@ public class UDPClient {
          byte tml = 9;
          request_id = (request_id + 1) % 128;
          byte checksum = ChecksumCalculator(request_id, x, a3, a2, a1, a0);
-         System.out.println(checksum);
+         System.out.println("Checksum (for debugging): " + checksum);
          Request request = new Request(tml, (short)request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
 
          byte[] bytesToSend = encoder.encode(request);
@@ -97,17 +97,34 @@ public class UDPClient {
             Response response = decoder.decode(receivePacket);
             
             byte[] bytes = receivePacket.getData();
-         
-            System.out.println("Sent Packet    : " + new String(hexChars(bytesToSend, tml)));
-            System.out.println("Received Packet: " + new String(hexChars(bytes, response.tml)));
-            System.out.println("Request ID is: " + response.request_id);
-            System.out.println("The result is: " + response.result);
+            
+            System.out.println();
+            System.out.println("Sent Packet         : " + new String(hexChars(bytesToSend, tml)));
+            System.out.println("Received Packet     : " + new String(hexChars(bytes, response.tml)));
+            System.out.println("Request ID is       : " + response.request_id);
+            System.out.println("Original Polynomial : " + a3 + "*x^3 + " + a2 + "*x^2 + " + a1 + "*x + " + a0);
+            System.out.println("X Value             : " + x);
+            System.out.println("The result is       : " + response.result);
          } else {
             System.out.println("No response -- giving up.");
          }
-         System.out.println("Time elapsed: " + (recTime - sendTime) + " ns");
+         System.out.println("Round trip time: " + (recTime - sendTime) + " ns");
          socket.close();
          polyCounter++;
+
+         for (;;) {
+            System.out.print("\nType \"c\" to compute another polynomial. Type \"q\" to quit the program. ");
+            String input = scanner.next();
+            if (input.toLowerCase().equals("c")) {
+               break;
+            } else if (input.toLowerCase().equals("q")) {
+               scanner.close();
+               System.out.println("Goodbye.");
+               System.exit(0);
+            } else {
+               System.out.println("Invalid response");
+            }
+         }
       }
    }
 

@@ -3,7 +3,7 @@ import java.io.*;   // for IOException
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
 
-public class UDPServer {
+public class ServerUDP {
   private static final int ECHOMAX = 9;  // maximum size of datagram packet
 
   public static void main(String[] args) throws IOException {
