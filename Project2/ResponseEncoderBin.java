@@ -7,7 +7,7 @@ public class ResponseEncoderBin implements ResponseEncoder {
         out.writeByte(response.tml);
         out.writeShort(response.request_id);
         out.writeByte(response.error);
-        out.writeByte(response.result);
+        out.writeInt(response.result);
         out.writeByte(response.checksum);
     
         out.flush();

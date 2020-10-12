@@ -1,21 +1,19 @@
 import java.net.*;  // for DatagramSocket, DatagramPacket, and InetAddress
 import java.io.*;   // for IOException
-import java.util.Arrays;
 import java.util.Scanner;
-
-import javax.lang.model.util.Types;
-
+import java.util.zip.Adler32;
+import java.util.zip.Checksum;
 import java.util.Random; 
 
 public class UDPClient {
-   private static final int TIMEOUT = 3000;   // Resend timeout (milliseconds)
-   private static final int MAXTRIES = 5;     // Maximum retransmissions
+   private static final int TIMEOUT = 3000;   // resend timeout (milliseconds)
+   private static final int MAXTRIES = 5;     // maximum retransmissions
 
    public static void main(String[] args) throws IOException {
-      if (args.length != 2)  // Test for correct # of args
+      if (args.length != 2)  // test for correct # of args
          throw new IllegalArgumentException("Parameter(s): <Server> <Port>");
    
-      InetAddress serverAddress = InetAddress.getByName(args[0]);  // Server address
+      InetAddress serverAddress = InetAddress.getByName(args[0]);  // server address
    
       int servPort = Integer.parseInt(args[1]);
 
@@ -25,74 +23,70 @@ public class UDPClient {
       ResponseDecoder decoder = new ResponseDecoderBin();
       RequestEncoder encoder = new RequestEncoderBin();
 
+      System.out.println("\nThis program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
+      int polyCounter = 1;
+      Scanner scanner = new Scanner(System.in);
+
       for(;;) {
-         System.out.println("This program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
-         Scanner scanner = new Scanner(System.in);
+         System.out.println("\nPolynomial " + polyCounter + ":");
          System.out.print("Enter x: ");
          int x = scanner.nextByte();
          if (x < 0 || x > 64) {
             System.out.println("Error, x input invalid!");
-            scanner.close();
             continue;
          }
          System.out.print("Enter a3: ");
          int a3 = scanner.nextByte();
          if (a3 < 0 || a3 > 64) {
             System.out.println("Error, a3 input invalid!");
-            scanner.close();
             continue;
          }
          System.out.print("Enter a2: ");
          int a2 = scanner.nextByte();
          if (a2 < 0 || a2 > 64) {
             System.out.println("Error, a2 input invalid!");
-            scanner.close();
             continue;
          }
          System.out.print("Enter a1: ");
          int a1 = scanner.nextByte();
          if (a1 < 0 || a1 > 64) {
             System.out.println("Error, a1 input invalid!");
-            scanner.close();
             continue;
          }
          System.out.print("Enter a0: ");
          int a0 = scanner.nextByte();
          if (a0 < 0 || a0 > 64) {
             System.out.println("Error, a0 input invalid!");
-            scanner.close();
             continue;
          }
-         scanner.close();
 
          byte tml = 9;
-         byte checksum = 0;
+         request_id = (request_id + 1) % 128;
+         byte checksum = ChecksumCalculator(request_id, x, a3, a2, a1, a0);
+         System.out.println(checksum);
          Request request = new Request(tml, (short)request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
 
-         request_id = (request_id + 1) % 128;
-
-         
          byte[] bytesToSend = encoder.encode(request);
          DatagramSocket socket = new DatagramSocket();
       
-         socket.setSoTimeout(TIMEOUT);  // Maximum receive blocking time (milliseconds)
+         socket.setSoTimeout(TIMEOUT);  // maximum receive blocking time (milliseconds)
          long sendTime = System.nanoTime();
          DatagramPacket sendPacket = new DatagramPacket(bytesToSend, bytesToSend.length, serverAddress, servPort); // sending packet
       
          DatagramPacket receivePacket = new DatagramPacket(new byte[bytesToSend.length], bytesToSend.length); // recieving packet
       
-         int tries = 0;      // Packets may be lost, so we have to keep trying
+         int tries = 0;      // packets may be lost, so we have to keep trying
          boolean receivedResponse = false;
          do {
-            socket.send(sendPacket);          // Send the echo string
+            socket.send(sendPacket);          // send the echo string
             try {
-               socket.receive(receivePacket);  // Attempt echo reply reception
+               socket.receive(receivePacket);  // attempt echo reply reception
             
-               if (!receivePacket.getAddress().equals(serverAddress))  // Check source
+               if (!receivePacket.getAddress().equals(serverAddress))  // check source
                   throw new IOException("Received packet from an unknown source");
             
                receivedResponse = true;
-            } catch (InterruptedIOException e) {  // We did not get anything
+            } catch (InterruptedIOException e) {  // we did not get anything
                tries += 1;
                System.out.println("Timed out, " + (MAXTRIES-tries) + " more tries...");
             }
@@ -112,9 +106,24 @@ public class UDPClient {
             System.out.println("No response -- giving up.");
          }
          System.out.println("Time elapsed: " + (recTime - sendTime) + " ns");
-         
-         socket.close();         
+         socket.close();
+         polyCounter++;
       }
+   }
+
+   public static byte ChecksumCalculator(int request_id, int x, int a3, int a2, int a1, int a0) {
+      byte tml = 9;
+      byte brequest_id = (byte) request_id;
+      byte bx = (byte)x;
+      byte ba3 = (byte)a3;
+      byte ba2 = (byte)a2;
+      byte ba1 = (byte)a1;
+      byte ba0 = (byte)a0;
+      byte[] byteArray = {tml, brequest_id, bx, ba3, ba2, ba1, ba0};
+      Checksum checksum = new Adler32();
+      checksum.update(byteArray, 0, byteArray.length);
+      byte res = (byte)checksum.getValue();
+      return res;
    }
 
    private static char[] hexChars(byte[] bytes, int length_in) {
