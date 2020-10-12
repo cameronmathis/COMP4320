@@ -1,15 +1,17 @@
 public class OperationServer {
 
     public byte tml;
-    public byte request_id;
+    public short request_id;
     public byte error;
     public int result;
+    public byte checksum;
   
-    public OperationServer(byte tml, byte request_id, byte error, int result)  {
+    public OperationServer(byte tml, short request_id, byte error, int result, byte checksum)  {
       this.tml = tml;
       this.request_id = request_id;
       this.error = error;
       this.result = result;
+      this.checksum = checksum;
     }
   
     public String toString() {
@@ -17,7 +19,8 @@ public class OperationServer {
       String value = "TML        = " + tml + EOLN +
                      "request id = " + request_id + EOLN +
                      "error      = " + error + EOLN +
-                     "result     = " + result + EOLN;
+                     "result     = " + result + EOLN +
+                     "checksum   = " + checksum + EOLN;
       return value;
     }
 }
