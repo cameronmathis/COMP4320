@@ -1,7 +1,7 @@
 import java.io.*;  // for ByteArrayInputStream
 import java.net.*; // for DatagramPacket
 
-public class ResponseDecoderBin {
+public class ResponseDecoderBin implements ResponseDecoder {
     public Response decode(InputStream wire)  throws IOException  {
         DataInputStream src = new DataInputStream(wire);
         byte tml = src.readByte();
@@ -10,7 +10,7 @@ public class ResponseDecoderBin {
         int result = src.readInt();
         byte checksum = src.readByte();
 
-        return new Request(tml, request_id, error_code, result, checksum);
+        return new Response(tml, request_id, error_code, result, checksum);
     }
 
     public Response decode(DatagramPacket p) throws IOException {

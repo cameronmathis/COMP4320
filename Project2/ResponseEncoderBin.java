@@ -1,6 +1,6 @@
 import java.io.*;  // for ByteArrayOutputStream and DataOutputStream
 
-public class ResponseEncoderBin { 
+public class ResponseEncoderBin implements ResponseEncoder { 
     public byte[] encode(Response response) throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(buf);

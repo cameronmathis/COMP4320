@@ -11,8 +11,8 @@ public class UDPServer {
     int serverPort = Integer.parseInt(args[0]);
 
     DatagramSocket socket = new DatagramSocket(serverPort);
-    ResultEncoderBin encoder = new ResultEncoderBin();
-    ResultDecoder decoder = new ResultDecoderBin();
+    RequestDecoder decoder = new RequestDecoderBin();
+    ResponseEncoderBin encoder = new ResponseEncoderBin();
     
     for (;;) {  // Run forever, receiving and echoing datagrams
       DatagramPacket packet = new DatagramPacket(new byte[ECHOMAX], ECHOMAX);
@@ -32,16 +32,16 @@ public class UDPServer {
       int a2 = request.a2;
       int a1 = request.a1;
       int a0 = request.a0;
-      long opResult = 0;
+      int opResult = 0;
       
       // perform calculation
       opResult = (a3)*(x*x*x) + (a2)*(x*x) + (a1)*(x) + (a0); 
 
       byte tml = 7;
       byte checksum = 0;
-      Result result = new Result(tml, request.request_id, error_code, opResult, checksum);
+      Response response = new  Response(tml, request.request_id, error_code, opResult, checksum);
 
-      byte[] bin = encoder.encode(result);
+      byte[] bin = encoder.encode(response);
       packet.setData(bin);
       socket.send(packet);       // Send the packet back to client
 

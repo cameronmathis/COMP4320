@@ -2,6 +2,9 @@ import java.net.*;  // for DatagramSocket, DatagramPacket, and InetAddress
 import java.io.*;   // for IOException
 import java.util.Arrays;
 import java.util.Scanner;
+
+import javax.lang.model.util.Types;
+
 import java.util.Random; 
 
 public class UDPClient {
@@ -19,8 +22,8 @@ public class UDPClient {
       Random random = new Random(); 
       int request_id = random.nextInt(128);
 
-      ResponseEncoder encoder = new ResponseEncoderBin();
       ResponseDecoder decoder = new ResponseDecoderBin();
+      RequestEncoder encoder = new RequestEncoderBin();
 
       for(;;) {
          System.out.println("This program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
@@ -101,7 +104,7 @@ public class UDPClient {
             
             byte[] bytes = receivePacket.getData();
          
-            System.out.println("Sent Packet    : " + new String(hexChars(bytesToSend, ttl)));
+            System.out.println("Sent Packet    : " + new String(hexChars(bytesToSend, tml)));
             System.out.println("Received Packet: " + new String(hexChars(bytes, response.tml)));
             System.out.println("Request ID is: " + response.request_id);
             System.out.println("The result is: " + response.result);
