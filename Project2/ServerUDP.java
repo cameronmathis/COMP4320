@@ -1,7 +1,7 @@
 import java.net.*;  // for DatagramSocket, DatagramPacket, and InetAddress
 import java.io.*;   // for IOException
-import java.util.zip.Adler32;
-import java.util.zip.Checksum;
+import java.math.BigInteger;
+import java.util.Arrays;
 
 public class ServerUDP {
   private static final int ECHOMAX = 9;  // maximum size of datagram packet
@@ -24,11 +24,11 @@ public class ServerUDP {
 
       Request request = decoder.decode(packet);
       byte error_code = 0;
-      byte checksum = 0;
+      byte checksum = ChecksumRequestCalculator(request.tml, request.request_id, request.x, request.a3, request.a2, request.a1, request.a0);
       int packetLength  = packet.getLength();
       // check that the checksums match
       if(request.checksum != checksum) {
-        error_code = 127;
+        error_code = 63;
       }
       // check that byte length recieved is equal to object's TML value
       if(request.tml != packetLength) {
@@ -46,6 +46,7 @@ public class ServerUDP {
       opResult = (a3)*(x*x*x) + (a2)*(x*x) + (a1)*(x) + (a0);
 
       byte tml = 9;
+      checksum = 0; // ChecksumResponseCalculator(tml, request.request_id, error_code, opResult);       BUGGY
       Response response = new Response(tml, request.request_id, error_code, opResult, checksum);
 
       byte[] bin = encoder.encode(response);
@@ -55,17 +56,35 @@ public class ServerUDP {
     /* NOT REACHED */
   }
 
-  public static byte ChecksumCalculator(int request_id, int x, int a3, int a2, int a1, int a0) {
-    byte tml = 9;
-    byte brequest_id = (byte) request_id;
+  public static byte ChecksumRequestCalculator(byte tml, int request_id, int x, int a3, int a2, int a1, int a0) {
+    BigInteger bigInt = BigInteger.valueOf(request_id);
+    byte[] brequest_id = bigInt.toByteArray();
     byte bx = (byte)x;
     byte ba3 = (byte)a3;
     byte ba2 = (byte)a2;
     byte ba1 = (byte)a1;
     byte ba0 = (byte)a0;
-    byte[] byteArray = {tml, brequest_id, bx, ba3, ba2, ba1, ba0};
+    byte[] byteArray = {tml, brequest_id[0], brequest_id[1], bx, ba3, ba2, ba1, ba0};
     byte S = byteArray[0];
-    for (byte i=1; i < 7; i++) {
+    for (byte i=1; i < 8; i++) {
+       boolean carry = willAdditionOverflow(S, byteArray[i]);
+       S = (byte) (S + byteArray[i]);
+       if (carry == true) {
+          S = (byte) (S + 1);
+       }
+    }
+    return (byte) ~S;
+ }
+
+  public static byte ChecksumResponseCalculator(byte tml, int request_id, byte error_code, int opResult) {
+    BigInteger bigInt_request_id = BigInteger.valueOf(request_id);
+    byte[] brequest_id = bigInt_request_id.toByteArray();
+    BigInteger bigInt_opResult = BigInteger.valueOf(request_id);
+    byte[] bopResult = bigInt_opResult.toByteArray();
+    System.out.print(Arrays.toString(bopResult));
+    byte[] byteArray = {tml, brequest_id[0], brequest_id[1], error_code, bopResult[0], bopResult[1], bopResult[2], bopResult[3]};
+    byte S = byteArray[0];
+    for (byte i=1; i < 8; i++) {
        boolean carry = willAdditionOverflow(S, byteArray[i]);
        S = (byte) (S + byteArray[i]);
        if (carry == true) {

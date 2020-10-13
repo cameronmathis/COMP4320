@@ -2,6 +2,7 @@ import java.net.*;  // for DatagramSocket, DatagramPacket, and InetAddress
 import java.io.*;   // for IOException
 import java.util.Scanner;
 import java.util.Random; 
+import java.math.BigInteger;
 
 public class ClientUDP {
    private static final int TIMEOUT = 3000;   // resend timeout (milliseconds)
@@ -16,7 +17,7 @@ public class ClientUDP {
       int servPort = Integer.parseInt(args[1]);
 
       Random random = new Random(); 
-      int request_id = random.nextInt(128);
+      int request_id = random.nextInt(65535);
 
       ResponseDecoder decoder = new ResponseDecoderBin();
       RequestEncoder encoder = new RequestEncoderBin();
@@ -59,8 +60,8 @@ public class ClientUDP {
          }
 
          byte tml = 9;
-         request_id = (request_id + 1) % 128;
-         byte checksum = ChecksumCalculator(request_id, x, a3, a2, a1, a0);
+         request_id = (request_id + 1) % 65535;
+         byte checksum = ChecksumRequestCalculator(tml, request_id, x, a3, a2, a1, a0);
          Request request = new Request(tml, (short)request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
 
          byte[] bytesToSend = encoder.encode(request);
@@ -98,7 +99,6 @@ public class ClientUDP {
             System.out.println();
             System.out.println("Sent Packet         : " + new String(hexChars(bytesToSend, tml)));
             System.out.println("Received Packet     : " + new String(hexChars(bytes, response.tml)));
-            System.out.println("Request ID is       : " + response.request_id);
             System.out.println("Original Polynomial : " + a3 + "*x^3 + " + a2 + "*x^2 + " + a1 + "*x + " + a0);
             System.out.println("X Value             : " + x);
             System.out.println("The result is       : " + response.result);
@@ -125,17 +125,17 @@ public class ClientUDP {
       }
    }
 
-   public static byte ChecksumCalculator(int request_id, int x, int a3, int a2, int a1, int a0) {
-      byte tml = 9;
-      byte brequest_id = (byte) request_id;
+   public static byte ChecksumRequestCalculator(byte tml, int request_id, int x, int a3, int a2, int a1, int a0) {
+      BigInteger bigInt = BigInteger.valueOf(request_id);
+      byte[] brequest_id = bigInt.toByteArray();
       byte bx = (byte)x;
       byte ba3 = (byte)a3;
       byte ba2 = (byte)a2;
       byte ba1 = (byte)a1;
       byte ba0 = (byte)a0;
-      byte[] byteArray = {tml, brequest_id, bx, ba3, ba2, ba1, ba0};
+      byte[] byteArray = {tml, brequest_id[0], brequest_id[1], bx, ba3, ba2, ba1, ba0};
       byte S = byteArray[0];
-      for (byte i=1; i < 7; i++) {
+      for (byte i=1; i < 8; i++) {
          boolean carry = willAdditionOverflow(S, byteArray[i]);
          S = (byte) (S + byteArray[i]);
          if (carry == true) {
