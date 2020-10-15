@@ -20,4 +20,4 @@ In order to compile and run the UDP Server:
 
 In order to compile and run the UDP Client: 
 
-	$ java UDPClient [IP Address of Server] [port number]
+	$ ./runClient.sh [IP Address of Server] [port number]

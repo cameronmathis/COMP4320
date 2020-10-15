@@ -27,7 +27,7 @@ public class ServerUDP {
       byte checksum = ChecksumRequestCalculator(request.tml, request.request_id, request.x, request.a3, request.a2, request.a1, request.a0);
       int packetLength  = packet.getLength();
       // check that the checksums match
-      if(request.checksum != checksum) {
+      if((byte)request.checksum != checksum) {
         error_code = 63;
       }
       // check that byte length recieved is equal to object's TML value
@@ -41,23 +41,12 @@ public class ServerUDP {
       int a1 = request.a1;
       int a0 = request.a0;
       int opResult = 0;
-
-      /* For debugging checksum *////////////////////////
-      System.out.println("\ntml: " + request.tml);
-      System.out.println("id: " + request.request_id);
-      System.out.println("x: " + x);
-      System.out.println("a3: " + a3);
-      System.out.println("a2: " + a2);
-      System.out.println("a1: " + a1);
-      System.out.println("a0: " + a0);
-      System.out.println("Checksum: " + checksum);
-      ///////////////////////////////////////////////////
       
       // perform calculation
       opResult = (a3)*(x*x*x) + (a2)*(x*x) + (a1)*(x) + (a0);
 
       byte tml = 9;
-      checksum = 0; // ChecksumResponseCalculator(tml, request.request_id, error_code, opResult);       BUGGY
+      checksum = ChecksumResponseCalculator(tml, request.request_id, error_code, opResult);
       Response response = new Response(tml, request.request_id, error_code, opResult, checksum);
 
       byte[] bin = encoder.encode(response);
@@ -68,13 +57,20 @@ public class ServerUDP {
   }
 
   public static byte ChecksumRequestCalculator(byte tml, int request_id, int x, int a3, int a2, int a1, int a0) {
-    BigInteger bigInt = BigInteger.valueOf(request_id);
-    byte[] brequest_id = bigInt.toByteArray();
+    int temp = request_id;
+    BigInteger bigInt = BigInteger.valueOf(temp);
+    byte[] temp_brequest_id = bigInt.toByteArray();
+    byte[] brequest_id = {0, 0};
+    int j = 1;
+    for (int i = temp_brequest_id.length - 1; i >= 0; i--) {
+       brequest_id[j--] = temp_brequest_id[i];
+    }
     byte bx = (byte)x;
     byte ba3 = (byte)a3;
     byte ba2 = (byte)a2;
     byte ba1 = (byte)a1;
     byte ba0 = (byte)a0;
+
     byte[] byteArray = {tml, brequest_id[0], brequest_id[1], bx, ba3, ba2, ba1, ba0};
     byte S = byteArray[0];
     for (byte i=1; i < 8; i++) {
@@ -88,11 +84,23 @@ public class ServerUDP {
   }
 
   public static byte ChecksumResponseCalculator(byte tml, int request_id, byte error_code, int opResult) {
-    BigInteger bigInt_request_id = BigInteger.valueOf(request_id);
-    byte[] brequest_id = bigInt_request_id.toByteArray();
-    BigInteger bigInt_opResult = BigInteger.valueOf(request_id);
-    byte[] bopResult = bigInt_opResult.toByteArray();
-    System.out.print(Arrays.toString(bopResult));
+    int temp = request_id;
+    BigInteger bigInt = BigInteger.valueOf(temp);
+    byte[] temp_brequest_id = bigInt.toByteArray();
+    byte[] brequest_id = {0, 0};
+    int j = 1;
+    for (int i = temp_brequest_id.length - 1; i >= 0; i--) {
+       brequest_id[j--] = temp_brequest_id[i];
+    }
+    temp = opResult;
+    BigInteger bigInt_opResult = BigInteger.valueOf(temp);
+    byte[] temp_bopResult = bigInt_opResult.toByteArray();
+    byte[] bopResult = {0, 0, 0, 0};
+    j = 3;
+    for (int i = temp_bopResult.length - 1; i >= 0; i--) {
+      bopResult[j--] = temp_bopResult[i];
+    }
+
     byte[] byteArray = {tml, brequest_id[0], brequest_id[1], error_code, bopResult[0], bopResult[1], bopResult[2], bopResult[3]};
     byte S = byteArray[0];
     for (byte i=1; i < 8; i++) {
