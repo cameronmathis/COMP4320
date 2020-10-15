@@ -103,7 +103,7 @@ public class ServerUDP {
        }
     }
     return (byte) ~S;
- }
+  }
 
   public static boolean willAdditionOverflow(byte left, byte right) {
     try {

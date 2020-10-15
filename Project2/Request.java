@@ -1,6 +1,6 @@
 public class Request {
     public byte tml;
-    public short request_id;
+    public int request_id;
     public byte x;
     public byte a3;
     public byte a2;
@@ -8,7 +8,7 @@ public class Request {
     public byte a0;
     public byte checksum;
   
-    public Request(byte tml, short request_id, byte x, byte a3, byte a2, byte a1, byte a0, byte checksum)  {
+    public Request(byte tml, int request_id, byte x, byte a3, byte a2, byte a1, byte a0, byte checksum)  {
       this.tml = tml;
       this.request_id = request_id;
       this.x = x;

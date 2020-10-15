@@ -17,7 +17,7 @@ public class ClientUDP {
       int servPort = Integer.parseInt(args[1]);
 
       Random random = new Random(); 
-      int request_id = random.nextInt(65535);
+      int request_id = 65500; //random.nextInt(65535);
 
       ResponseDecoder decoder = new ResponseDecoderBin();
       RequestEncoder encoder = new RequestEncoderBin();
@@ -73,8 +73,8 @@ public class ClientUDP {
          System.out.println("a0: " + a0);
          System.out.println("Checksum: " + checksum);
          ////////////////////////////////////////////
-         
-         Request request = new Request(tml, (short)request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
+
+         Request request = new Request(tml, request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
 
          byte[] bytesToSend = encoder.encode(request);
          DatagramSocket socket = new DatagramSocket();

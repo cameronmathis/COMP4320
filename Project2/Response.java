@@ -1,11 +1,11 @@
 public class Response {
     public byte tml;
-    public short request_id;
+    public int request_id;
     public byte error;
     public int result;
     public byte checksum;
   
-    public Response(byte tml, short request_id, byte error, int result, byte checksum)  {
+    public Response(byte tml, int request_id, byte error, int result, byte checksum)  {
       this.tml = tml;
       this.request_id = request_id;
       this.error = error;
