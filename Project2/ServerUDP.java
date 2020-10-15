@@ -25,7 +25,6 @@ public class ServerUDP {
       Request request = decoder.decode(packet);
       byte error_code = 0;
       byte checksum = ChecksumRequestCalculator(request.tml, request.request_id, request.x, request.a3, request.a2, request.a1, request.a0);
-      System.out.println("\nChecksum: " + checksum);
       int packetLength  = packet.getLength();
       // check that the checksums match
       if(request.checksum != checksum) {
@@ -36,20 +35,23 @@ public class ServerUDP {
         error_code = 127;
       }
 
-      System.out.println("tml: " + request.tml);
-      System.out.println("id: " + request.request_id);
       int x = request.x;
-      System.out.println("x: " + x);
       int a3 = request.a3;
-      System.out.println("a3: " + a3);
       int a2 = request.a2;
-      System.out.println("a2: " + a2);
       int a1 = request.a1;
-      System.out.println("a1: " + a1);
       int a0 = request.a0;
-      System.out.println("a0: " + a0);
       int opResult = 0;
+
+      /* For debugging checksum *////////////////////////
+      System.out.println("\ntml: " + request.tml);
+      System.out.println("id: " + request.request_id);
+      System.out.println("x: " + x);
+      System.out.println("a3: " + a3);
+      System.out.println("a2: " + a2);
+      System.out.println("a1: " + a1);
+      System.out.println("a0: " + a0);
       System.out.println("Checksum: " + checksum);
+      ///////////////////////////////////////////////////
       
       // perform calculation
       opResult = (a3)*(x*x*x) + (a2)*(x*x) + (a1)*(x) + (a0);

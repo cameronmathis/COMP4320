@@ -62,6 +62,8 @@ public class ClientUDP {
          byte tml = 9;
          request_id = (request_id + 1) % 65535;
          byte checksum = ChecksumRequestCalculator(tml, request_id, x, a3, a2, a1, a0);
+
+         /* For debugging checksum */////////////////
          System.out.println("\ntml: " + tml);
          System.out.println("id: " + request_id);
          System.out.println("x: " + x);
@@ -70,6 +72,8 @@ public class ClientUDP {
          System.out.println("a1: " + a1);
          System.out.println("a0: " + a0);
          System.out.println("Checksum: " + checksum);
+         ////////////////////////////////////////////
+         
          Request request = new Request(tml, (short)request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
 
          byte[] bytesToSend = encoder.encode(request);
