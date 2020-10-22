@@ -1,5 +1,5 @@
 #!/bin/bash
 # compile the program in Java
-javac *.java
+javac -d out src/*.java
 # execute the program
-java ServerUDP $1
+java -cp ./out ServerUDP $1
