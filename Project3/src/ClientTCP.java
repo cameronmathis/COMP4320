@@ -61,7 +61,6 @@ public class ClientTCP {
 
          byte tml = 9;
          request_id = (request_id + 1) % 32767;
-         System.out.println("R_ID: " + request_id);
          byte checksum = ChecksumRequestCalculator(tml, request_id, x, a3, a2, a1, a0);
 
          Request request = new Request(tml, request_id, (byte) x, (byte) a3, (byte) a2, (byte) a1, (byte) a0,
