@@ -26,4 +26,8 @@ public class Request {
         + EOLN + "checksum   = " + checksum + EOLN;
     return value;
   }
+
+  public int getLength() {
+    return 9;
+  }
 }

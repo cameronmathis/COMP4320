@@ -19,4 +19,8 @@ public class Response {
         + "result     = " + result + EOLN + "checksum   = " + checksum + EOLN;
     return value;
   }
+
+  public int getLength() {
+    return 9;
+  }
 }
