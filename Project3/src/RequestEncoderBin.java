@@ -1,4 +1,4 @@
-import java.io.*;  // for ByteArrayOutputStream and DataOutputStream
+import java.io.*; // for ByteArrayOutputStream and DataOutputStream
 
 public class RequestEncoderBin implements RequestEncoder {
   public byte[] encode(Request request) throws IOException {

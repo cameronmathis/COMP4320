@@ -1,8 +1,8 @@
-import java.io.*;  // for ByteArrayInputStream
+import java.io.*; // for ByteArrayInputStream
 import java.net.*; // for DatagramPacket
 
 public class RequestDecoderBin implements RequestDecoder {
-    public Request decode(InputStream wire)  throws IOException  {
+    public Request decode(InputStream wire) throws IOException {
         DataInputStream src = new DataInputStream(wire);
         byte tml = src.readByte();
         short request_id = src.readShort();
@@ -17,8 +17,7 @@ public class RequestDecoderBin implements RequestDecoder {
     }
 
     public Request decode(DatagramPacket p) throws IOException {
-        ByteArrayInputStream payload =
-            new ByteArrayInputStream(p.getData(), p.getOffset(), p.getLength());
+        ByteArrayInputStream payload = new ByteArrayInputStream(p.getData(), p.getOffset(), p.getLength());
         return decode(payload);
     }
 }

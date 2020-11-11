@@ -1,32 +1,32 @@
-import java.net.*;  // for Socket
-import java.io.*;   // for Input/OutputStream
+import java.net.*; // for Socket
+import java.io.*; // for Input/OutputStream
 import java.util.Scanner;
-import java.util.Random; 
+import java.util.Random;
 import java.math.BigInteger;
 
 public class ClientTCP {
-   private static final int TIMEOUT = 3000;   // resend timeout (milliseconds)
-   private static final int MAXTRIES = 5;     // maximum retransmissions
+   private static final int TIMEOUT = 3000; // resend timeout (milliseconds)
+   private static final int MAXTRIES = 5; // maximum retransmissions
 
    public static void main(String[] args) throws IOException {
-      if (args.length != 2)  // test for correct # of args
+      if (args.length != 2) // test for correct # of args
          throw new IllegalArgumentException("Parameter(s): <Server> <Port>");
-   
-      InetAddress serverAddress = InetAddress.getByName(args[0]);  // server address
+
+      InetAddress serverAddress = InetAddress.getByName(args[0]); // server address
       int serverPort = Integer.parseInt(args[1]);
-      Socket clientSocket = new Socket(serverAddress, serverPort);
 
       ResponseDecoder decoder = new ResponseDecoderBin();
       RequestEncoder encoder = new RequestEncoderBin();
 
-      Random random = new Random(); 
+      Random random = new Random();
       int request_id = random.nextInt(32767);
 
-      System.out.println("\nThis program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
+      System.out.println(
+            "\nThis program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
       int polyCounter = 1;
       Scanner scanner = new Scanner(System.in);
 
-      for(;;) {
+      for (;;) {
          System.out.println("\nPolynomial " + polyCounter + ":");
          System.out.print("Enter x: ");
          int x = scanner.nextByte();
@@ -63,78 +63,69 @@ public class ClientTCP {
          request_id = (request_id + 1) % 32767;
          byte checksum = ChecksumRequestCalculator(tml, request_id, x, a3, a2, a1, a0);
 
-         Request request = new Request(tml, request_id, (byte)x, (byte)a3, (byte)a2, (byte)a1, (byte)a0, (byte)checksum);
+         Request request = new Request(tml, request_id, (byte) x, (byte) a3, (byte) a2, (byte) a1, (byte) a0,
+               (byte) checksum);
          byte[] bytesToSend = encoder.encode(request);
-      
-         clientSocket.setSoTimeout(TIMEOUT);  // maximum receive blocking time (milliseconds)
-         long sendTime = System.nanoTime();
-      
-         int tries = 0;      // packets may be lost, so we have to keep trying
-         boolean receivedResponse = false;
-         do {
-            clientSocket.getOutputStream().write(bytesToSend); // send the request
-            try {
-               InputStream input = clientSocket.getInputStream();
 
-               //if (!inputStream.getAddress().equals(serverAddress))  // check source
-               //   throw new IOException("Received packet from an unknown source");
-            
-               receivedResponse = true;
-            } catch (InterruptedIOException e) {  // we did not get anything
-               tries += 1;
-               System.out.println("Timed out, " + (MAXTRIES-tries) + " more tries...");
+         Socket socket;
+         try {
+            socket = new Socket(serverAddress, serverPort);
+            socket.setSoTimeout(TIMEOUT); // maximum receive blocking time (milliseconds)
+
+            int tries = 0; // packets may be lost, so we have to keep trying
+            boolean receivedResponse = false;
+
+            long sendTime = System.nanoTime();
+            do {
+               socket.getOutputStream().write(bytesToSend); // send the request
+               try {
+                  InputStream input = socket.getInputStream();
+                  Response response = decoder.decode(input);
+                  byte[] bytes = responseToBytes(response);
+                  long recTime = System.nanoTime();
+                  receivedResponse = true;
+
+                  if (receivedResponse) {
+                     System.out.println();
+                     char[] hexChars = hexChars(bytesToSend, tml);
+                     System.out.print("Sent Packet         : " + hexChars[0] + hexChars[1]);
+                     System.out.print(" " + hexChars[2] + hexChars[3]);
+                     System.out.print(" " + hexChars[4] + hexChars[5]);
+                     System.out.print(" " + hexChars[6] + hexChars[7]);
+                     System.out.print(" " + hexChars[8] + hexChars[9]);
+                     System.out.print(" " + hexChars[10] + hexChars[11]);
+                     System.out.print(" " + hexChars[12] + hexChars[13]);
+                     System.out.print(" " + hexChars[14] + hexChars[15]);
+                     System.out.println(" " + hexChars[16] + hexChars[17]);
+                     hexChars = hexChars(bytes, response.tml);
+                     System.out.print("Received Packet     : " + hexChars[0] + hexChars[1]);
+                     System.out.print(" " + hexChars[2] + hexChars[3]);
+                     System.out.print(" " + hexChars[4] + hexChars[5]);
+                     System.out.print(" " + hexChars[6] + hexChars[7]);
+                     System.out.print(" " + hexChars[8] + hexChars[9]);
+                     System.out.print(" " + hexChars[10] + hexChars[11]);
+                     System.out.print(" " + hexChars[12] + hexChars[13]);
+                     System.out.print(" " + hexChars[14] + hexChars[15]);
+                     System.out.println(" " + hexChars[16] + hexChars[17]);
+                     System.out.println("Original Polynomial : " + a3 + "*x^3 + " + a2 + "*x^2 + " + a1 + "*x + " + a0);
+                     System.out.println("X Value             : " + x);
+                     System.out.println("The result is       : " + response.result);
+                     System.out.println("Round trip time: " + (recTime - sendTime) + " ns");
+                  }
+               } catch (SocketTimeoutException e) { // we did not get anything
+                  tries += 1;
+                  System.out.println("Timed out, " + (MAXTRIES - tries) + " more tries...");
+               }
+            } while ((!receivedResponse) && (tries < MAXTRIES));
+            if (!receivedResponse) {
+               System.out.println("No response -- giving up.");
             }
-         } while ((!receivedResponse) && (tries < MAXTRIES));
-         long recTime = System.nanoTime();
-      
-         if (receivedResponse) {
-            Response response = decoder.decode(clientSocket.getInputStream());
-
-            byte[] bytes = new byte[20];
-            
-            System.out.println();
-            char [] hexChars = hexChars(bytesToSend, tml);
-            System.out.print("Sent Packet         : " + hexChars[0] + hexChars[1]);
-            System.out.print(" " + hexChars[2] + hexChars[3]);
-            System.out.print(" " + hexChars[4] + hexChars[5]);
-            System.out.print(" " + hexChars[6] + hexChars[7]);
-            System.out.print(" " + hexChars[8] + hexChars[9]);
-            System.out.print(" " + hexChars[10] + hexChars[11]);
-            System.out.print(" " + hexChars[12] + hexChars[13]);
-            System.out.print(" " + hexChars[14] + hexChars[15]);
-            System.out.println(" " + hexChars[16] + hexChars[17]);
-            hexChars = hexChars(bytes, response.tml);
-            System.out.print("Received Packet     : " + hexChars[0] + hexChars[1]);
-            System.out.print(" " + hexChars[2] + hexChars[3]);
-            System.out.print(" " + hexChars[4] + hexChars[5]);
-            System.out.print(" " + hexChars[6] + hexChars[7]);
-            System.out.print(" " + hexChars[8] + hexChars[9]);
-            System.out.print(" " + hexChars[10] + hexChars[11]);
-            System.out.print(" " + hexChars[12] + hexChars[13]);
-            System.out.print(" " + hexChars[14] + hexChars[15]);
-            System.out.println(" " + hexChars[16] + hexChars[17]);
-            System.out.println("Original Polynomial : " + a3 + "*x^3 + " + a2 + "*x^2 + " + a1 + "*x + " + a0);
-            System.out.println("X Value             : " + x);
-            System.out.println("The result is       : " + response.result);
-         } else {
-            System.out.println("No response -- giving up.");
-         }
-         System.out.println("Round trip time: " + (recTime - sendTime) + " ns");
-         clientSocket.close();
-         polyCounter++;
-
-         for (;;) {
-            System.out.print("\nType \"c\" to compute another polynomial. Type \"q\" to quit the program. ");
-            String input = scanner.next();
-            if (input.toLowerCase().equals("c")) {
-               break;
-            } else if (input.toLowerCase().equals("q")) {
-               scanner.close();
-               System.out.println("Goodbye.");
-               System.exit(0);
-            } else {
-               System.out.println("Invalid response");
-            }
+            socket.close();
+            polyCounter++;
+            shouldContinue(scanner);
+         } catch (ConnectException e) {
+            System.out.println("Connection to server refused.");
+            shouldContinue(scanner);
          }
       }
    }
@@ -143,20 +134,20 @@ public class ClientTCP {
       int temp = request_id;
       BigInteger bigInt = BigInteger.valueOf(temp);
       byte[] temp_brequest_id = bigInt.toByteArray();
-      byte[] brequest_id = {0, 0};
+      byte[] brequest_id = { 0, 0 };
       int j = 1;
       for (int i = temp_brequest_id.length - 1; i >= 0; i--) {
          brequest_id[j--] = temp_brequest_id[i];
       }
-      byte bx = (byte)x;
-      byte ba3 = (byte)a3;
-      byte ba2 = (byte)a2;
-      byte ba1 = (byte)a1;
-      byte ba0 = (byte)a0;
+      byte bx = (byte) x;
+      byte ba3 = (byte) a3;
+      byte ba2 = (byte) a2;
+      byte ba1 = (byte) a1;
+      byte ba0 = (byte) a0;
 
-      byte[] byteArray = {tml, brequest_id[0], brequest_id[1], bx, ba3, ba2, ba1, ba0};
+      byte[] byteArray = { tml, brequest_id[0], brequest_id[1], bx, ba3, ba2, ba1, ba0 };
       byte S = byteArray[0];
-      for (byte i=1; i < 8; i++) {
+      for (byte i = 1; i < 8; i++) {
          boolean carry = willAdditionOverflow(S, byteArray[i]);
          S = (byte) (S + byteArray[i]);
          if (carry == true) {
@@ -168,21 +159,43 @@ public class ClientTCP {
 
    public static boolean willAdditionOverflow(byte left, byte right) {
       try {
-          Math.addExact(left, right);
-          return false;
+         Math.addExact(left, right);
+         return false;
       } catch (ArithmeticException e) {
-          return true;
+         return true;
       }
    }
 
    private static char[] hexChars(byte[] bytes, int length_in) {
-      char [] hexChars = new char[length_in * 2];
-      char[] HEX_CHARS = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+      char[] hexChars = new char[length_in * 2];
+      char[] HEX_CHARS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
       for (int j = 0; j < length_in; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_CHARS[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_CHARS[v & 0x0F];
+         int v = bytes[j] & 0xFF;
+         hexChars[j * 2] = HEX_CHARS[v >>> 4];
+         hexChars[j * 2 + 1] = HEX_CHARS[v & 0x0F];
       }
       return hexChars;
+   }
+
+   private static byte[] responseToBytes(Response resp) {
+      byte[] result = new byte[resp.tml];
+
+      return result;
+   }
+
+   private static int shouldContinue(Scanner scnr) {
+      for (;;) {
+         System.out.print("\nType \"c\" to compute another polynomial. Type \"q\" to quit the program. ");
+         String input = scnr.next();
+         if (input.toLowerCase().equals("c")) {
+            return 0;
+         } else if (input.toLowerCase().equals("q")) {
+            scnr.close();
+            System.out.println("Goodbye.");
+            System.exit(0);
+         } else {
+            System.out.println("Invalid response");
+         }
+      }
    }
 }
