@@ -20,6 +20,7 @@ public class ClientTCP {
 
       Random random = new Random();
       int request_id = random.nextInt(32767);
+      request_id = 24122;
 
       System.out.println(
             "\nThis program computes polynomials in the following format: P(x) = a3*x^3 + a2*x^2 + a1*x + a0\twith 0 <= ai <= 64 and 0 <= x <= 64 for all i 0 <= i <= 3.");
