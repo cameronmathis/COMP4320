@@ -180,6 +180,16 @@ public class ClientTCP {
    private static byte[] responseToBytes(Response resp) {
       byte[] result = new byte[resp.tml];
 
+      result[0] = resp.tml;
+      result[1] = 0;
+      result[2] = 0;
+      result[3] = resp.error;
+      result[4] = 0;
+      result[5] = 0;
+      result[6] = 0;
+      result[7] = 0;
+      result[8] = resp.checksum;
+
       return result;
    }
 

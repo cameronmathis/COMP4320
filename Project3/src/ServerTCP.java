@@ -24,7 +24,7 @@ public class ServerTCP {
       byte error_code = 0;
       byte checksum = ChecksumRequestCalculator(request.tml, request.request_id, request.x, request.a3, request.a2,
           request.a1, request.a0);
-      int packetLength = 0; // packet.getLength();
+      int packetLength = 9; // packet.getLength();
       // check that the checksums match
       if ((byte) request.checksum != checksum) {
         error_code = 63;
