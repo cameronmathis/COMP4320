@@ -6,7 +6,7 @@ import java.math.BigInteger;
 
 public class ClientTCP {
    private static final int TIMEOUT = 3000; // resend timeout (milliseconds)
-   private static final int MAXTRIES = 5; // maximum retransmissions
+   private static final int MAX_TRIES = 5; // maximum retransmissions
 
    public static void main(String[] args) throws IOException {
       if (args.length != 2) // test for correct # of args
@@ -61,6 +61,7 @@ public class ClientTCP {
 
          byte tml = 9;
          request_id = (request_id + 1) % 32767;
+         System.out.println("R_ID: " + request_id);
          byte checksum = ChecksumRequestCalculator(tml, request_id, x, a3, a2, a1, a0);
 
          Request request = new Request(tml, request_id, (byte) x, (byte) a3, (byte) a2, (byte) a1, (byte) a0,
@@ -114,9 +115,9 @@ public class ClientTCP {
                   }
                } catch (SocketTimeoutException e) { // we did not get anything
                   tries += 1;
-                  System.out.println("Timed out, " + (MAXTRIES - tries) + " more tries...");
+                  System.out.println("Timed out, " + (MAX_TRIES - tries) + " more tries...");
                }
-            } while ((!receivedResponse) && (tries < MAXTRIES));
+            } while ((!receivedResponse) && (tries < MAX_TRIES));
             if (!receivedResponse) {
                System.out.println("No response -- giving up.");
             }
@@ -178,19 +179,26 @@ public class ClientTCP {
    }
 
    private static byte[] responseToBytes(Response resp) {
-      byte[] result = new byte[resp.tml];
+      BigInteger bigInt = BigInteger.valueOf(resp.request_id);
+      byte[] temp_request_id = bigInt.toByteArray();
+      byte[] request_id = { 0, 0 };
+      int j = 1;
+      for (int i = temp_request_id.length - 1; i >= 0; i--) {
+         request_id[j--] = temp_request_id[i];
+      }
 
-      result[0] = resp.tml;
-      result[1] = 0;
-      result[2] = 0;
-      result[3] = resp.error;
-      result[4] = 0;
-      result[5] = 0;
-      result[6] = 0;
-      result[7] = 0;
-      result[8] = resp.checksum;
+      bigInt = BigInteger.valueOf(resp.result);
+      byte[] temp_result = bigInt.toByteArray();
+      byte[] result = { 0, 0, 0, 0 };
+      j = 3;
+      for (int i = temp_result.length - 1; i >= 0; i--) {
+         result[j--] = temp_result[i];
+      }
 
-      return result;
+      byte[] returnResult = { resp.tml, request_id[0], request_id[1], resp.error, result[0], result[1], result[2],
+            result[3], resp.checksum };
+
+      return returnResult;
    }
 
    private static int shouldContinue(Scanner scnr) {
