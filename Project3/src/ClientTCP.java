@@ -62,7 +62,7 @@ public class ClientTCP {
 
          byte tml = 9;
          request_id = (request_id + 1) % 32767;
-         byte checksum = ChecksumRequestCalculator(tml, request_id, x, a3, a2, a1, a0);
+         byte checksum = Request.ChecksumCalculator(tml, request_id, x, a3, a2, a1, a0);
 
          Request request = new Request(tml, request_id, (byte) x, (byte) a3, (byte) a2, (byte) a1, (byte) a0,
                (byte) checksum);
@@ -128,42 +128,6 @@ public class ClientTCP {
             System.out.println("Connection to server refused.");
             shouldContinue(scanner);
          }
-      }
-   }
-
-   public static byte ChecksumRequestCalculator(byte tml, int request_id, int x, int a3, int a2, int a1, int a0) {
-      int temp = request_id;
-      BigInteger bigInt = BigInteger.valueOf(temp);
-      byte[] temp_brequest_id = bigInt.toByteArray();
-      byte[] brequest_id = { 0, 0 };
-      int j = 1;
-      for (int i = temp_brequest_id.length - 1; i >= 0; i--) {
-         brequest_id[j--] = temp_brequest_id[i];
-      }
-      byte bx = (byte) x;
-      byte ba3 = (byte) a3;
-      byte ba2 = (byte) a2;
-      byte ba1 = (byte) a1;
-      byte ba0 = (byte) a0;
-
-      byte[] byteArray = { tml, brequest_id[0], brequest_id[1], bx, ba3, ba2, ba1, ba0 };
-      byte S = byteArray[0];
-      for (byte i = 1; i < 8; i++) {
-         boolean carry = willAdditionOverflow(S, byteArray[i]);
-         S = (byte) (S + byteArray[i]);
-         if (carry == true) {
-            S = (byte) (S + 1);
-         }
-      }
-      return (byte) ~S;
-   }
-
-   public static boolean willAdditionOverflow(byte left, byte right) {
-      try {
-         Math.addExact(left, right);
-         return false;
-      } catch (ArithmeticException e) {
-         return true;
       }
    }
 
